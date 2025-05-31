@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import path from "path";
 import { ValidRoutes } from "./shared/ValidRoutes.js";
+import { getImagesWithDelay } from "./common/ApiImageData.js";
 
 dotenv.config(); // Read the .env file in the current working directory, and load values into process.env.
 const PORT = process.env.PORT || 3000;
@@ -15,6 +16,15 @@ app.use(express.static(STATIC_DIR));
 
 app.get("/api/hello", (req: Request, res: Response) => {
     res.send("Hello, World");
+});
+
+app.get("/api/images", async (req: Request, res: Response) => {
+    try {
+        const images = await getImagesWithDelay();
+        res.json(images);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch images" });
+    }
 });
 
 // Serve the React app for all valid routes

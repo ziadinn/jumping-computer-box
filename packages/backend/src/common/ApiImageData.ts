@@ -1,16 +1,16 @@
-export interface IImageData {
+export interface IApiImageData {
     id: string;
     src: string;
     name: string;
-    author: IUserData;
+    author: IApiUserData;
 }
 
-export interface IUserData {
+export interface IApiUserData {
     id: string,
     username: string
 }
 
-const IMAGES: IImageData[] = [
+export const IMAGES: IApiImageData[] = [
     {
         id: "0",
         src: "https://upload.wikimedia.org/wikipedia/commons/3/33/Blue_merle_koolie_short_coat_heading_sheep.jpg",
@@ -58,9 +58,11 @@ const IMAGES: IImageData[] = [
     }
 ];
 
-let fetchCount = 0;
-export function fetchDataFromServer() {
-    fetchCount++;
-    console.log("Fetching data x" + fetchCount);
-    return IMAGES;
+function waitDuration(numMs: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, numMs));
 }
+
+export async function getImagesWithDelay(): Promise<IApiImageData[]> {
+    await waitDuration(1000); // 1 second delay
+    return IMAGES;
+} 
