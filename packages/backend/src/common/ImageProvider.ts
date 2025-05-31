@@ -38,13 +38,20 @@ export class ImageProvider {
         this.usersCollection = this.mongoClient.db().collection(usersCollectionName);
     }
 
-    async getAllImages(): Promise<IApiImageData[]> {
+    async getAllImages(searchTerm?: string): Promise<IApiImageData[]> {
         // Add 1-second delay as requested
         await waitDuration(1000);
         
         try {
-            // Fetch all images
-            const images = await this.collection.find().toArray();
+            // Build query filter for searching by name
+            const filter: any = {};
+            if (searchTerm) {
+                // Case-insensitive substring search
+                filter.name = { $regex: searchTerm, $options: 'i' };
+            }
+
+            // Fetch images with optional search filter
+            const images = await this.collection.find(filter).toArray();
             
             // Fetch all users 
             const users = await this.usersCollection.find().toArray();
@@ -90,6 +97,25 @@ export class ImageProvider {
             return denormalizedImages;
         } catch (error) {
             console.error("Error in getAllImages:", error);
+            throw error;
+        }
+    }
+
+    async updateImageName(imageId: string, newName: string): Promise<number> {
+        try {
+            // Convert string ID to ObjectId for the database query
+            const objectId = new ObjectId(imageId);
+            
+            // Update the image name using updateOne
+            const result = await this.collection.updateOne(
+                { _id: objectId },
+                { $set: { name: newName } }
+            );
+            
+            // Return the number of documents modified
+            return result.modifiedCount;
+        } catch (error) {
+            console.error("Error in updateImageName:", error);
             throw error;
         }
     }

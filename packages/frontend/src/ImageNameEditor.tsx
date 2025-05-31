@@ -19,19 +19,32 @@ export function ImageNameEditor(props: INameEditorProps) {
         setError(null);
 
         try {
-            // Fetch from the same URL as used in App.tsx (simulating the real API we'll implement later)
-            const response = await fetch("/api/images");
+            // Send PUT request to update the image name
+            const response = await fetch(`/api/images/${props.imageId}/name`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: input })
+            });
+
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                // Parse error response
+                try {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+                } catch (parseError) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
             }
             
-            // Ignore the response data as requested, just update the local state
+            // Success! Update the local state
             props.updateImageName(props.imageId, input);
             setIsEditingName(false);
             setError(null);
         } catch (error) {
             console.error("Failed to update image name:", error);
-            setError("Failed to update image name. Please try again.");
+            setError(error instanceof Error ? error.message : "Failed to update image name. Please try again.");
         } finally {
             setIsSubmitting(false);
         }

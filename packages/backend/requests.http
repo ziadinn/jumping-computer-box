@@ -1,0 +1,52 @@
+### Get all images
+GET http://localhost:3000/api/images
+
+### Search for images containing "cat"
+GET http://localhost:3000/api/images?search=cat
+
+### Search for images containing "dog" 
+GET http://localhost:3000/api/images?search=dog
+
+### Search for images containing "Blue"
+GET http://localhost:3000/api/images?search=Blue
+
+### Update image name (replace with actual image ID from GET request)
+PUT http://localhost:3000/api/images/683a93c4bb1794d543bd6806/name
+Content-Type: application/json
+
+{
+  "name": "Updated Blue Merle Herding Sheep"
+}
+
+### Test error cases
+
+### Update image name - Invalid ObjectId
+PUT http://localhost:3000/api/images/invalid-id/name
+Content-Type: application/json
+
+{
+  "name": "This should fail"
+}
+
+### Update image name - Missing name field
+PUT http://localhost:3000/api/images/683a93c4bb1794d543bd6806/name
+Content-Type: application/json
+
+{
+}
+
+### Update image name - Name too long (over 100 characters)
+PUT http://localhost:3000/api/images/683a93c4bb1794d543bd6806/name
+Content-Type: application/json
+
+{
+  "name": "This is a very long image name that exceeds the 100 character limit and should trigger a 422 error response from the server because it's too long for the database"
+}
+
+### Update image name - Non-existent image ID (valid ObjectId format but doesn't exist)
+PUT http://localhost:3000/api/images/123456789012345678901234/name
+Content-Type: application/json
+
+{
+  "name": "This image doesn't exist"
+} 

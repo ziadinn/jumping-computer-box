@@ -4,6 +4,7 @@ import path from "path";
 import { ValidRoutes } from "./shared/ValidRoutes.js";
 import { connectMongo } from "./common/connectMongo.js";
 import { ImageProvider } from "./common/ImageProvider.js";
+import { createImageRouter } from "./routes/imageRoutes.js";
 
 dotenv.config(); // Read the .env file in the current working directory, and load values into process.env.
 const PORT = process.env.PORT || 3000;
@@ -12,25 +13,22 @@ const STATIC_DIR = process.env.STATIC_DIR || "public";
 
 const app = express();
 
+// Enable JSON parsing middleware
+app.use(express.json());
+
 // Initialize MongoDB connection and ImageProvider
 const mongoClient = connectMongo();
 const imageProvider = new ImageProvider(mongoClient);
+
+// Register image routes
+const imageRouter = createImageRouter(imageProvider);
+app.use("/api/images", imageRouter);
 
 // Serve static files from the frontend dist directory
 app.use(express.static(STATIC_DIR));
 
 app.get("/api/hello", (req: Request, res: Response) => {
     res.send("Hello, World");
-});
-
-app.get("/api/images", async (req: Request, res: Response) => {
-    try {
-        const images = await imageProvider.getAllImages();
-        res.json(images);
-    } catch (error) {
-        console.error("Error fetching images:", error);
-        res.status(500).json({ error: "Failed to fetch images" });
-    }
 });
 
 // Serve the React app for all valid routes
