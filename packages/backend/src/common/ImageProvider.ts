@@ -39,8 +39,8 @@ export class ImageProvider {
     }
 
     async getAllImages(searchTerm?: string): Promise<IApiImageData[]> {
-        // Add 1-second delay as requested
-        await waitDuration(1000);
+        // Add random delay between 0 and 5 seconds for race condition testing
+        await waitDuration(Math.random() * 5000);
         
         try {
             // Build query filter for searching by name

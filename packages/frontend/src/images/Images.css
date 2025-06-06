@@ -3,6 +3,7 @@
     grid-template-columns: repeat(auto-fit, 16em);
     grid-template-rows: 16em;
     gap: 2em;
+    margin-top: 2em;
 }
 
 .ImageGrid-photo-container {
