@@ -50,8 +50,11 @@ export function createAuthRouter(credentialsProvider: CredentialsProvider): expr
                 });
             }
 
-            // Success - Created
-            res.status(201).send();
+            // Success - Generate JWT token and return it
+            const jwtSecret = req.app.locals.JWT_SECRET as string;
+            const token = await generateAuthToken(username, jwtSecret);
+            
+            res.status(201).json({ token });
         } catch (error) {
             console.error("Error registering user:", error);
             res.status(500).json({ error: "Failed to register user" });

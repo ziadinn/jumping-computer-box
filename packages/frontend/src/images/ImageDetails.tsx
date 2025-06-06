@@ -6,7 +6,7 @@ interface IImageDetailsProps {
     images: IApiImageData[];
     isLoading: boolean;
     hasError: boolean;
-    updateImageName: (imageId: string, newName: string) => void;
+    updateImageName: (imageId: string, newName: string) => Promise<void>;
 }
 
 export function ImageDetails({ images, isLoading, hasError, updateImageName }: IImageDetailsProps) {

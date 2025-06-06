@@ -3,7 +3,7 @@ import { useState } from "react";
 interface INameEditorProps {
     initialValue: string;
     imageId: string;
-    updateImageName: (imageId: string, newName: string) => void;
+    updateImageName: (imageId: string, newName: string) => Promise<void>;
 }
 
 export function ImageNameEditor(props: INameEditorProps) {
@@ -19,27 +19,8 @@ export function ImageNameEditor(props: INameEditorProps) {
         setError(null);
 
         try {
-            // Send PUT request to update the image name
-            const response = await fetch(`/api/images/${props.imageId}/name`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ name: input })
-            });
-
-            if (!response.ok) {
-                // Parse error response
-                try {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
-                } catch (parseError) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-            }
-            
-            // Success! Update the local state
-            props.updateImageName(props.imageId, input);
+            // Use the parent's updateImageName function which handles auth
+            await props.updateImageName(props.imageId, input);
             setIsEditingName(false);
             setError(null);
         } catch (error) {
