@@ -45,6 +45,10 @@ app.use("/api/images", imageRouter);
 // Serve static files from the frontend dist directory
 app.use(express.static(STATIC_DIR));
 
+// Serve uploaded images
+const IMAGE_UPLOAD_DIR = process.env.IMAGE_UPLOAD_DIR || "uploads";
+app.use("/uploads", express.static(IMAGE_UPLOAD_DIR));
+
 app.get("/api/hello", (req: Request, res: Response) => {
     res.send("Hello, World");
 });

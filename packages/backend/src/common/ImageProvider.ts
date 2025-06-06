@@ -1,4 +1,4 @@
-import { MongoClient, Collection, ObjectId } from "mongodb";
+import { MongoClient, Collection, ObjectId, OptionalId } from "mongodb";
 import { IApiImageData, IApiUserData } from "./ApiImageData.js";
 
 interface IImageDocument {
@@ -81,10 +81,19 @@ export class ImageProvider {
                 // Use id field if available, otherwise use _id.toString()
                 const imageId = image.id || image._id.toString();
                 
-                // If image has author field, use it; otherwise use default user
-                const author = image.author && userMap.has(image.author) 
-                    ? userMap.get(image.author)! 
-                    : defaultUser;
+                // If image has author field, try to find in userMap, otherwise create fake user
+                let author: IApiUserData;
+                if (image.author && userMap.has(image.author)) {
+                    author = userMap.get(image.author)!;
+                } else if (image.author) {
+                    // Create fake user for authors not in users collection
+                    author = {
+                        id: image.author,
+                        username: image.author
+                    };
+                } else {
+                    author = defaultUser;
+                }
                 
                 return {
                     id: imageId,
@@ -143,6 +152,20 @@ export class ImageProvider {
             return users.length > 0 ? users[0]._id : "unknown";
         } catch (error) {
             console.error("Error in getImageOwner:", error);
+            throw error;
+        }
+    }
+
+    async createImage(src: string, name: string, author: string): Promise<void> {
+        try {
+            // @ts-ignore - TypeScript being overly strict with MongoDB insertOne
+            await this.collection.insertOne({
+                src: src,
+                name: name,
+                author: author
+            });
+        } catch (error) {
+            console.error("Error in createImage:", error);
             throw error;
         }
     }

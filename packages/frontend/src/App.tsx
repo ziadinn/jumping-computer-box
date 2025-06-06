@@ -134,7 +134,7 @@ function App() {
                     path="upload" 
                     element={
                         <ProtectedRoute authToken={authToken}>
-                            <UploadPage />
+                            <UploadPage authToken={authToken} />
                         </ProtectedRoute>
                     } 
                 />

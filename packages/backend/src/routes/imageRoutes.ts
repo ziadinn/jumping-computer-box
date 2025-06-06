@@ -1,6 +1,7 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import { ObjectId } from "mongodb";
 import { ImageProvider } from "../common/ImageProvider.js";
+import { imageMiddlewareFactory, handleImageFileErrors } from "../middleware/imageUploadMiddleware.js";
 
 export function createImageRouter(imageProvider: ImageProvider): express.Router {
     const router = express.Router();
@@ -99,6 +100,39 @@ export function createImageRouter(imageProvider: ImageProvider): express.Router 
             res.status(500).json({ error: "Failed to update image name" });
         }
     });
+
+    // POST /api/images - Upload new image
+    router.post(
+        "/",
+        imageMiddlewareFactory.single("image"),
+        handleImageFileErrors,
+        // @ts-ignore - TypeScript is being overly strict with Express route handlers
+        async (req: Request, res: Response) => {
+            try {
+                // Check if we have the required data
+                const file = req.file;
+                const { name } = req.body;
+                const username = req.user?.username;
+
+                if (!file || !name || !username) {
+                    return res.status(400).send({
+                        error: "Bad Request",
+                        message: "Missing file, name, or authentication"
+                    });
+                }
+
+                // Create the image document in the database
+                const src = `/uploads/${file.filename}`;
+                await imageProvider.createImage(src, name, username);
+
+                // Success - Created
+                res.status(201).send();
+            } catch (error) {
+                console.error("Error uploading image:", error);
+                res.status(500).json({ error: "Failed to upload image" });
+            }
+        }
+    );
 
     return router;
 } 
