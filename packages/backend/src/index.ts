@@ -4,7 +4,10 @@ import path from "path";
 import { ValidRoutes } from "./shared/ValidRoutes.js";
 import { connectMongo } from "./common/connectMongo.js";
 import { ImageProvider } from "./common/ImageProvider.js";
+import { CredentialsProvider } from "./common/CredentialsProvider.js";
 import { createImageRouter } from "./routes/imageRoutes.js";
+import { createAuthRouter } from "./routes/authRoutes.js";
+import { verifyAuthToken } from "./middleware/verifyAuthToken.js";
 
 dotenv.config(); // Read the .env file in the current working directory, and load values into process.env.
 const PORT = process.env.PORT || 3000;
@@ -13,14 +16,29 @@ const STATIC_DIR = process.env.STATIC_DIR || "public";
 
 const app = express();
 
+// Set up JWT secret in app.locals
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error("Missing JWT_SECRET from environment variables");
+}
+app.locals.JWT_SECRET = JWT_SECRET;
+
 // Enable JSON parsing middleware
 app.use(express.json());
 
-// Initialize MongoDB connection and ImageProvider
+// Initialize MongoDB connection and providers
 const mongoClient = connectMongo();
 const imageProvider = new ImageProvider(mongoClient);
+const credentialsProvider = new CredentialsProvider(mongoClient);
 
-// Register image routes
+// Register auth routes (no authentication required)
+const authRouter = createAuthRouter(credentialsProvider);
+app.use("/auth", authRouter);
+
+// Protect all API routes with authentication
+app.use("/api/*", verifyAuthToken);
+
+// Register image routes (protected by authentication)
 const imageRouter = createImageRouter(imageProvider);
 app.use("/api/images", imageRouter);
 

@@ -119,4 +119,31 @@ export class ImageProvider {
             throw error;
         }
     }
+
+    async getImageOwner(imageId: string): Promise<string | null> {
+        try {
+            // Convert string ID to ObjectId for the database query
+            const objectId = new ObjectId(imageId);
+            
+            // Find the image by ID
+            const image = await this.collection.findOne({ _id: objectId });
+            
+            if (!image) {
+                return null; // Image doesn't exist
+            }
+            
+            // If image has author field, return it; otherwise get default user
+            if (image.author) {
+                return image.author;
+            }
+            
+            // Since images don't have author references in this database,
+            // we'll return the first user's ID as default
+            const users = await this.usersCollection.find().toArray();
+            return users.length > 0 ? users[0]._id : "unknown";
+        } catch (error) {
+            console.error("Error in getImageOwner:", error);
+            throw error;
+        }
+    }
 } 

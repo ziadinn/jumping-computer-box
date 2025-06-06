@@ -64,6 +64,24 @@ export function createImageRouter(imageProvider: ImageProvider): express.Router 
                 });
             }
 
+            // Check if user owns the image
+            const imageOwner = await imageProvider.getImageOwner(imageId);
+            if (imageOwner === null) {
+                return res.status(404).send({
+                    error: "Not Found",
+                    message: "Image does not exist"
+                });
+            }
+            
+            // Verify ownership (req.user is set by verifyAuthToken middleware)
+            const loggedInUsername = req.user?.username;
+            if (!loggedInUsername || loggedInUsername !== imageOwner) {
+                return res.status(403).send({
+                    error: "Forbidden",
+                    message: "You can only edit your own images"
+                });
+            }
+
             // Update the image name
             const updateCount = await imageProvider.updateImageName(imageId, name);
             
